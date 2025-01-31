@@ -1,59 +1,61 @@
 import express from "express";
 import bodyParser from "body-parser";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const port = 3000;
-const masterKey = "4VGP2DN-6EWM4SJ-N6FGRHV-Z3PR3TT";
+const masterKey = process.env.MASTER_KEY;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
 app.get("/random", (req, res) => {
-  const joke = jokes[Math.round(Math.random()*jokes.length)];
+  const joke = jokes[Math.round(Math.random() * jokes.length)];
   res.json(joke);
-})
+});
 
 app.get("/jokes/:id", (req, res) => {
   const jokeId = parseInt(req.params.id);
   let foundJoke = jokes.find((joke) => joke.id === jokeId);
-  if (!foundJoke){
+  if (!foundJoke) {
     foundJoke = "The joke with this ID does not exist";
   }
   res.json(foundJoke);
-})
+});
 
 app.get("/jokes/", (req, res) => {
   const jokeType = req.query.type;
   const goodJokes = jokes.filter((joke) => joke.jokeType === jokeType);
   console.log(goodJokes);
-  if (goodJokes.length === 0){
+  if (goodJokes.length === 0) {
     res.json("We dont have this type of jokes.");
   } else {
-  res.json(goodJokes);
+    res.json(goodJokes);
   }
-})
+});
 //4. POST a new joke
 app.post("/jokes", (req, res) => {
   const newJoke = {
     id: jokes.length + 1,
     jokeText: req.body.text,
-    jokeType: req.body.type,};
-    jokes.push(newJoke);
-    console.log(jokes.slice(-1));
-    res.json(newJoke);
-  }
-);
+    jokeType: req.body.type,
+  };
+  jokes.push(newJoke);
+  console.log(jokes.slice(-1));
+  res.json(newJoke);
+});
 //5. PUT a joke
 app.put("/jokes/:id", (req, res) => {
   const updatedJoke = {
     id: parseInt(req.params.id),
     jokeText: req.body.text,
-    jokeType: req.body.type,};
-  const index = jokes.findIndex((joke) => joke.id === req.params.id)
+    jokeType: req.body.type,
+  };
+  const index = jokes.findIndex((joke) => joke.id === req.params.id);
   jokes[index] = updatedJoke;
   res.json(updatedJoke);
-  }
-);
+});
 
 app.patch("/jokes/:id", (req, res) => {
   const id = parseInt(req.params.id);
@@ -71,7 +73,7 @@ app.patch("/jokes/:id", (req, res) => {
 app.delete("/jokes/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const apiKey = req.query.key;
-  
+
   if (apiKey !== masterKey) {
     return res.status(401).json({ error: "Invalid API key" });
   }
@@ -90,15 +92,14 @@ app.delete("/jokes/:id", (req, res) => {
 //8. DELETE All jokes
 app.delete("/all", (req, res) => {
   const apiKey = req.query.key;
-  
+
   if (apiKey !== masterKey) {
     return res.status(401).json({ error: "Invalid API key" });
   }
-  
+
   jokes = [];
   res.sendStatus(200);
 });
-
 
 app.listen(port, () => {
   console.log(`Successfully started server on port ${port}.`);
